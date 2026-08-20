@@ -6,7 +6,7 @@ normal development sessions.
 ## 0. Project Foundation
 
 - [x] Preserve old implementation on an archive branch.
-- [x] Restart `main` from a clean WXT React scaffold.
+- [x] Restart `master` from a clean WXT React scaffold.
 - [x] Pin Node, pnpm, WXT, React, TypeScript, Tailwind, and Biome versions.
 - [x] Configure Tailwind through WXT/Vite.
 - [x] Configure Biome formatting and linting.
@@ -57,9 +57,10 @@ normal development sessions.
 ## 5. Whole Sentence Rephrase
 
 - [x] Detect sentence boundaries for the active field text.
-- [x] Offer a whole-sentence rephrase action.
-- [x] Apply the active preset tone to mock rephrase output.
-- [x] Preserve user selection and focus where practical.
+- [ ] Define the real-provider contract for whole-sentence rephrasing.
+- [ ] Offer a whole-sentence rephrase action only after the provider returns a valid response.
+- [ ] Apply the active preset tone to real-provider rephrase requests.
+- [ ] Preserve user selection and focus while applying a rephrase.
 
 ## 6. Tests
 
@@ -76,7 +77,7 @@ normal development sessions.
 - [x] Decide the first real provider integration.
 - [x] Define provider configuration shape without storing secrets in code.
 - [x] Store provider credentials only in non-synced local browser storage.
-- [ ] Add `.env.example` entries only if local development requires environment variables.
+- [x] Confirm local development does not require environment variables or an `.env.example` file.
 - [x] Add provider connection status checks.
 - [x] Add explicit error states for missing or invalid local credentials.
 - [x] Add explicit error states for unauthorized provider credentials.
@@ -84,10 +85,16 @@ normal development sessions.
 
 ## 8. Release Readiness
 
-- [ ] Replace placeholder icons and screenshots.
+- [x] Replace placeholder extension icons.
+- [ ] Create Chrome Web Store screenshots and promotional assets.
 - [ ] Add privacy policy draft.
-- [ ] Add manual install instructions for unpacked Chrome extension usage.
-- [ ] Add production build ZIP instructions.
-- [ ] Review Chrome Web Store permission wording.
-- [ ] Review accessibility basics.
-- [ ] Review security and privacy risks before enabling a real provider.
+- [x] Add manual install instructions for the unpacked Chrome extension.
+- [x] Add and verify production build ZIP instructions.
+- [x] Review and document Chrome Web Store permission wording.
+- [x] Add prominent data-use disclosure and affirmative consent before saving a provider.
+- [x] Review and document accessibility basics.
+- [ ] Complete manual keyboard, screen-reader, zoom, and forced-colors checks.
+- [x] Review and document security and privacy risks for the real-provider MVP.
+- [x] Move provider credentials and network calls into a background worker.
+- [ ] Manually verify sensitive-field exclusions on representative production websites.
+- [x] Add the standalone MIT `LICENSE` file with the approved copyright holder.

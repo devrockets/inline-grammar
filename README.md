@@ -24,7 +24,8 @@ suggestions inline while typing.
 - Highlights the relevant contenteditable range when a suggestion is hovered or focused.
 - Temporarily selects the relevant text in inputs and textareas on pointer hover.
 - Supports applying one suggestion, applying all suggestions, and one-step undo.
-- Stores settings and provider credentials in non-synced browser-local storage.
+- Stores settings and provider credentials in non-synced browser-local storage restricted to
+  trusted extension contexts.
 - Has no application backend, user accounts, analytics, or remote project database.
 
 Inline Grammar intentionally ignores password fields and other fields classified as sensitive or
@@ -47,10 +48,12 @@ English is the only supported language in the MVP.
 
 1. The content script discovers supported writing fields on the current page.
 2. After the user types at least three words, a 1.5-second debounce starts.
-3. Inline Grammar sends the field text and selected preset directly from the browser to Gemini.
-4. Gemini returns structured replacements with source-text ranges and explanations.
-5. The extension validates and normalizes those ranges before displaying suggestions.
-6. The user can inspect, apply, or ignore each suggestion without leaving the page.
+3. The content script sends the field text and selected preset to Inline Grammar's background
+   service worker; it never receives the stored API key.
+4. The service worker loads the provider configuration and sends the request directly to Gemini.
+5. Gemini returns structured replacements with source-text ranges and explanations.
+6. The extension validates and normalizes those ranges before displaying suggestions.
+7. The user can inspect, apply, or ignore each suggestion without leaving the page.
 
 Identical text and preset combinations are cached for the current extension session to avoid
 unnecessary repeat requests. An in-flight request is cancelled when newer text or configuration
@@ -88,6 +91,17 @@ pnpm build
 
 WXT writes the unpacked Chrome extension to `.output/chrome-mv3`.
 
+To build and package the production extension as a ZIP archive:
+
+```bash
+pnpm zip
+```
+
+For version `0.1.0`, the archive is written to
+`.output/inline-grammar-0.1.0-chrome.zip`. The versioned filename follows the `version` field in
+`package.json`. Both the unpacked build and ZIP archive are generated artifacts and are ignored by
+Git.
+
 ### Load the extension in Chrome
 
 1. Open `chrome://extensions`.
@@ -102,12 +116,13 @@ does not pick up a change automatically.
 ## Configure Gemini
 
 1. Open Inline Grammar from the browser toolbar.
-2. Paste a Gemini API key into the provider form.
-3. Keep the default model (`gemini-3.6-flash`) or enter another Gemini model identifier available to
+2. Review the data-use disclosure and choose **I agree and continue**.
+3. Paste a Gemini API key into the provider form that appears.
+4. Keep the default model (`gemini-3.6-flash`) or enter another Gemini model identifier available to
    the key.
-4. Use **Test connection** to confirm that Gemini recognizes the key and model.
-5. Save the provider configuration.
-6. Select a writing preset and leave the extension enabled.
+5. Use **Test connection** to confirm that Gemini recognizes the key and model.
+6. Save the provider configuration.
+7. Select a writing preset and leave the extension enabled.
 
 The connection test checks whether the key and model are recognized. It does not make a text
 generation request, so a successful test can still be followed by a quota, permission, or model
@@ -122,10 +137,19 @@ to the selected model.
 
 - The API key is stored with `chrome.storage.local`, not `chrome.storage.sync`, so Inline Grammar
   does not intentionally sync it through the browser account.
+- Local storage is restricted to trusted extension contexts. Content scripts receive only the
+  enabled state, selected preset, consent state, and provider connection status through typed
+  background messages.
+- Provider connection tests and text-analysis requests run in the background service worker; the
+  API key is not placed in page-facing content-script memory.
 - Browser-local extension storage is not encrypted by this project. Anyone or any software with
   sufficient access to the browser profile may be able to read it.
-- Text from eligible fields is sent directly to Google's Gemini API for analysis when a provider is
-  configured.
+- Text from eligible fields is sent by the background service worker directly to Google's Gemini
+  API for analysis when a provider is configured and the user has accepted the in-product data-use
+  disclosure.
+- Provider configurations created before the consent gate was introduced remain blocked until the
+  user reviews and accepts the disclosure. The accepted disclosure is remembered independently of
+  the provider, so clearing or replacing a key does not show it again.
 - Inline Grammar does not send the text through a project-owned server and does not store it in a
   project database.
 - The project has no analytics or telemetry. Development builds log request metadata such as model,
@@ -167,11 +191,13 @@ naming rules are documented in [`specs/testing-guidelines.md`](specs/testing-gui
 
 ```text
 entrypoints/
+  background.ts       Credential boundary, provider requests, and safe settings messages
   content.ts          Content script and page-field lifecycle
   popup/              React settings and provider configuration UI
 lib/
   checking-controller.ts
                       Debouncing, cancellation, session caching, and check state
+  background-*.ts     Typed service-worker request and response boundary
   gemini-provider.ts  Gemini request, response validation, and error handling
   field-*.ts          Field discovery, eligibility, indicator, and selection behavior
   issue-cues.ts       Source-range highlighting and native selection cues
@@ -183,6 +209,7 @@ test/
   unit/               Vitest module and regression tests
   e2e/                Playwright extension tests
   global-fixtures/    Local pages used by browser tests
+docs/                 Release, policy, and user-facing project documentation
 specs/                Engineering conventions and supporting specifications
 ```
 
@@ -200,10 +227,14 @@ tests.
 - Checks run on all websites for supported fields; per-site policies are not implemented.
 - Complex rich-text editors may represent text in ways the current DOM-range mapper does not yet
   support.
-- The project does not yet have visual-regression assertions, a privacy policy, or a store-release
-  workflow.
+- The project does not yet have visual-regression assertions, a privacy policy, or an automated
+  store-release workflow.
 
 See [`ROADMAP.md`](ROADMAP.md) for completed milestones and planned release work.
+Chrome Web Store access and disclosure decisions are recorded in
+[`docs/chrome-web-store.md`](docs/chrome-web-store.md).
+The current threat model, controls, and accepted MVP risks are recorded in
+[`docs/security-privacy-review.md`](docs/security-privacy-review.md).
 
 ## Contributing
 
@@ -214,4 +245,4 @@ a pull request.
 
 ## License
 
-Inline Grammar uses the MIT license.
+Inline Grammar is available under the [MIT License](LICENSE).
