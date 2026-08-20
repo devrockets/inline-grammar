@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inline Grammar Playground</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.5;
+      }
+
+      body {
+        margin: 0;
+        background: #f4f4f5;
+        color: #18181b;
+      }
+
+      main {
+        box-sizing: border-box;
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin-block-start: 0;
+      }
+
+      h1 {
+        margin-block-end: 8px;
+        font-size: 28px;
+        line-height: 1.15;
+      }
+
+      h2 {
+        margin-block-end: 12px;
+        font-size: 16px;
+      }
+
+      .intro {
+        margin-block-end: 28px;
+        color: #52525b;
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .card {
+        border: 1px solid #d4d4d8;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 18px;
+      }
+
+      label,
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      label,
+      .field-label {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      input,
+      textarea,
+      [contenteditable="true"] {
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid #a1a1aa;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #18181b;
+        font: inherit;
+        font-weight: 400;
+        padding: 10px 12px;
+      }
+
+      input:disabled,
+      textarea:disabled,
+      input[readonly],
+      textarea[readonly] {
+        background: #e4e4e7;
+        color: #71717a;
+      }
+
+      textarea {
+        min-height: 112px;
+        resize: vertical;
+      }
+
+      [contenteditable="true"] {
+        min-height: 92px;
+      }
+
+      .hint {
+        margin-block-start: 6px;
+        color: #71717a;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Inline Grammar Playground</h1>
+      <p class="intro">
+        Static fixture for manually checking field detection, inline cues, popovers, and later
+        integration tests.
+      </p>
+
+      <div class="grid">
+        <section class="card" aria-labelledby="eligible-fields">
+          <h2 id="eligible-fields">Eligible Fields</h2>
+
+          <div class="grid">
+            <label>
+              Single-line text input
+              <input
+                data-testid="plain-input"
+                type="text"
+                value="Inlineai seems to already exists, lets create a name no one is using"
+              />
+            </label>
+
+            <label>
+              Email-like writing field
+              <textarea data-testid="message-textarea">
+Hi team, i reviewed the document and their is a few things we should improve before send it.
+              </textarea>
+            </label>
+
+            <div class="field">
+              <span class="field-label" id="contenteditable-label">Contenteditable editor</span>
+              <!-- biome-ignore lint/a11y/useSemanticElements: This fixture intentionally exercises contenteditable rich-text editors. -->
+              <div
+                aria-labelledby="contenteditable-label"
+                contenteditable="true"
+                data-testid="contenteditable-editor"
+                role="textbox"
+                tabindex="0"
+              >
+This are a editable area that behaves more like rich text editors used in social websites.
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="field-label" id="linkedin-like-label">LinkedIn-like post editor</span>
+              <!-- biome-ignore lint/a11y/useSemanticElements: This fixture intentionally exercises nested contenteditable editors used by social websites. -->
+              <div
+                aria-labelledby="linkedin-like-label"
+                contenteditable="true"
+                data-testid="linkedin-like-editor"
+                role="textbox"
+                tabindex="0"
+              >
+                <p>This are a draft post with their is a grammar issue.</p>
+                <p>lets keep this second line visible like a real LinkedIn post.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="excluded-fields">
+          <h2 id="excluded-fields">Excluded Fields</h2>
+
+          <div class="grid">
+            <label>
+              Password input
+              <input data-testid="password-input" type="password" value="never-check-this" />
+            </label>
+
+            <label>
+              Read-only input
+              <input data-testid="readonly-input" type="text" value="Do not modify me" readonly />
+            </label>
+
+            <label>
+              Disabled textarea
+              <textarea data-testid="disabled-textarea" disabled>
+This field is disabled and should be ignored.
+              </textarea>
+            </label>
+
+            <label>
+              Credit card input
+              <input
+                autocomplete="cc-number"
+                data-testid="credit-card-input"
+                inputmode="numeric"
+                placeholder="4111 1111 1111 1111"
+                type="text"
+              />
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <p class="hint">
+        Later tests should assert that Inline Grammar attaches only to fields in the eligible
+        section.
+      </p>
+    </main>
+  </body>
+</html>

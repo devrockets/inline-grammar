@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inline Grammar Modal Playground</title>
+    <style>
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background: #e4e4e7;
+        font-family: system-ui, sans-serif;
+      }
+
+      dialog {
+        width: min(560px, calc(100vw - 48px));
+        border: 0;
+        border-radius: 12px;
+        padding: 24px;
+      }
+
+      dialog::backdrop {
+        background: rgb(24 24 27 / 80%);
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field-label {
+        font-weight: 600;
+      }
+
+      [contenteditable="true"] {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 140px;
+        border: 1px solid #a1a1aa;
+        border-radius: 8px;
+        padding: 12px;
+        font: inherit;
+        font-weight: 400;
+      }
+    </style>
+  </head>
+  <body>
+    <dialog data-testid="native-modal">
+      <div data-testid="dialog-content">
+        <div class="field">
+          <span class="field-label" id="modal-editor-label">Modal writing field</span>
+          <div data-testid="editor-wrapper">
+            <!-- biome-ignore lint/a11y/useSemanticElements: This fixture reproduces LinkedIn's ProseMirror contenteditable textbox. -->
+            <div
+              aria-labelledby="modal-editor-label"
+              class="tiptap ProseMirror"
+              contenteditable="true"
+              data-testid="modal-editor"
+              role="textbox"
+              tabindex="0"
+            >
+              <p>This are text inside a modal dialog.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <script>
+      document.querySelector('[data-testid="native-modal"]').showModal();
+    </script>
+  </body>
+</html>
