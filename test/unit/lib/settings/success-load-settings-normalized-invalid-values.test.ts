@@ -24,6 +24,7 @@ describe('Given invalid stored settings, when loadSettings runs, then it normali
         model: '',
         type: 'openai_compatible',
       },
+      providerDataConsent: true,
       providerStatus: 'connected',
     });
 
@@ -52,5 +53,9 @@ describe('Given invalid stored settings, when loadSettings runs, then it normali
 
   it('drops invalid provider config', () => {
     expect(sut.result.provider).toBeNull();
+  });
+
+  it('preserves affirmative consent independently of provider validity', () => {
+    expect(sut.result.providerDataConsent).toBe(true);
   });
 });

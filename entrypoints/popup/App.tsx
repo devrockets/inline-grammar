@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react';
+import { testProviderInBackground } from '@/lib/background-client';
 import { getPreset, presets } from '@/lib/presets';
-import { testProviderConnection } from '@/lib/provider-client';
 import {
   createGeminiProviderConfig,
   type ExtensionSettings,
@@ -62,7 +62,9 @@ function App() {
   }, []);
 
   async function saveSettingsChange(
-    changes: Partial<Pick<ExtensionSettings, 'enabled' | 'presetId' | 'provider'>>,
+    changes: Partial<
+      Pick<ExtensionSettings, 'enabled' | 'presetId' | 'provider' | 'providerDataConsent'>
+    >,
   ) {
     if (!settings) return;
 
@@ -93,6 +95,11 @@ function App() {
       return;
     }
 
+    if (!settings?.providerDataConsent) {
+      setErrorMessage('Review and accept the data-use disclosure before configuring a provider.');
+      return;
+    }
+
     await saveSettingsChange({ provider });
   }
 
@@ -100,6 +107,10 @@ function App() {
     setProviderForm(defaultProviderForm);
     resetProviderValidation();
     await saveSettingsChange({ provider: null });
+  }
+
+  async function acceptProviderDataUse() {
+    await saveSettingsChange({ providerDataConsent: true });
   }
 
   function resetProviderValidation() {
@@ -123,7 +134,7 @@ function App() {
     setProviderValidationMessage('Testing Gemini connection...');
 
     try {
-      const result = await testProviderConnection(provider);
+      const result = await testProviderInBackground(provider);
 
       if (result.status === 'connected') {
         setProviderValidationState('success');
@@ -175,7 +186,7 @@ function App() {
         className="min-w-0"
         disabled={isLoading || isSaving}
       >
-        <legend className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <legend className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-400">
           Preset
         </legend>
         <div className="grid min-w-0 grid-cols-2 gap-2">
@@ -207,128 +218,150 @@ function App() {
 
       <section className="mt-4 min-w-0 rounded-md border border-zinc-800 bg-zinc-900 p-3">
         <div className="flex min-w-0 items-center justify-between gap-3">
-          <h2 className="min-w-0 text-sm text-zinc-200">Gemini provider</h2>
+          <h2 className="min-w-0 text-sm text-zinc-200">AI provider</h2>
           <span className="shrink-0 rounded-full bg-zinc-800 px-2 py-1 text-xs text-zinc-400">
-            {settings?.providerStatus === 'configured' ? 'Configured' : 'Not configured'}
+            {!settings?.providerDataConsent
+              ? 'Review required'
+              : settings.providerStatus === 'configured'
+                ? 'Configured'
+                : 'Not configured'}
           </span>
         </div>
-        <p className="mt-2 min-w-0 text-xs text-zinc-500">
-          Use a Gemini API key from Google AI Studio. It usually starts with AIza or AQ. Credentials
-          are stored only in local browser storage.
-        </p>
+        {settings?.providerDataConsent ? (
+          <>
+            <h3 className="mt-3 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+              Gemini
+            </h3>
+            <p className="mt-2 min-w-0 text-xs text-zinc-400">
+              Use a Gemini API key from Google AI Studio. It usually starts with AIza or AQ.
+              Credentials are stored only in local browser storage.
+            </p>
 
-        <div className="mt-3 grid min-w-0 gap-2">
-          <p className="min-w-0 break-all rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-500">
-            <span className="text-zinc-400">Endpoint:</span> {geminiProviderDefaults.baseUrl}
-          </p>
+            <div className="mt-3 grid min-w-0 gap-2">
+              <p className="min-w-0 break-all rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-400">
+                <span className="text-zinc-400">Endpoint:</span> {geminiProviderDefaults.baseUrl}
+              </p>
 
-          <label className="grid min-w-0 gap-1 text-xs text-zinc-300">
-            Model
-            <input
-              className="min-w-0 max-w-full rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none focus:border-sky-500"
-              disabled={isLoading || isSaving}
-              onChange={(event) => {
-                const model = event.currentTarget.value;
+              <label className="grid min-w-0 gap-1 text-xs text-zinc-300">
+                Model
+                <input
+                  className="min-w-0 max-w-full rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none focus:border-sky-500"
+                  disabled={isLoading || isSaving}
+                  onChange={(event) => {
+                    const model = event.currentTarget.value;
 
-                resetProviderValidation();
-                setProviderForm((currentForm) => ({
-                  ...currentForm,
-                  model,
-                }));
-              }}
-              placeholder={geminiProviderDefaults.model}
-              type="text"
-              value={providerForm.model}
-            />
-          </label>
+                    resetProviderValidation();
+                    setProviderForm((currentForm) => ({ ...currentForm, model }));
+                  }}
+                  placeholder={geminiProviderDefaults.model}
+                  type="text"
+                  value={providerForm.model}
+                />
+              </label>
 
-          <label className="grid min-w-0 gap-1 text-xs text-zinc-300">
-            API key
-            <input
-              autoComplete="off"
-              aria-describedby="gemini-api-key-validation"
-              className={`min-w-0 max-w-full rounded-md border bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none focus:border-sky-500 ${
-                providerValidationState === 'success'
-                  ? 'border-emerald-500 focus:border-emerald-400'
-                  : providerValidationState === 'error'
-                    ? 'border-pink-400 focus:border-pink-300'
-                    : 'border-zinc-700'
-              }`}
-              disabled={isLoading || isSaving}
-              onChange={(event) => {
-                const apiKey = event.currentTarget.value;
+              <label className="grid min-w-0 gap-1 text-xs text-zinc-300">
+                API key
+                <input
+                  autoComplete="off"
+                  aria-describedby="gemini-api-key-validation"
+                  className={`min-w-0 max-w-full rounded-md border bg-zinc-950 px-2 py-1.5 text-xs text-zinc-100 outline-none focus:border-sky-500 ${
+                    providerValidationState === 'success'
+                      ? 'border-emerald-500 focus:border-emerald-400'
+                      : providerValidationState === 'error'
+                        ? 'border-pink-400 focus:border-pink-300'
+                        : 'border-zinc-700'
+                  }`}
+                  disabled={isLoading || isSaving}
+                  onChange={(event) => {
+                    const apiKey = event.currentTarget.value;
 
-                resetProviderValidation();
-                setProviderForm((currentForm) => ({
-                  ...currentForm,
-                  apiKey,
-                }));
-              }}
-              placeholder="Stored locally, never synced"
-              type="password"
-              value={providerForm.apiKey}
-            />
-            {providerValidationMessage ? (
-              <span
-                className={`break-words text-xs ${
-                  providerValidationState === 'success'
-                    ? 'text-emerald-300'
-                    : providerValidationState === 'error'
-                      ? 'text-pink-300'
-                      : 'text-zinc-500'
-                }`}
-                id="gemini-api-key-validation"
+                    resetProviderValidation();
+                    setProviderForm((currentForm) => ({ ...currentForm, apiKey }));
+                  }}
+                  placeholder="Stored locally, never synced"
+                  type="password"
+                  value={providerForm.apiKey}
+                />
+                <span
+                  className={`min-h-4 break-words text-xs ${
+                    providerValidationState === 'success'
+                      ? 'text-emerald-300'
+                      : providerValidationState === 'error'
+                        ? 'text-pink-300'
+                        : 'text-zinc-400'
+                  }`}
+                  id="gemini-api-key-validation"
+                  role="status"
+                >
+                  {providerValidationMessage}
+                </span>
+              </label>
+
+              <a
+                className="min-w-0 truncate text-xs font-medium text-sky-300 underline-offset-2 hover:text-sky-200 hover:underline"
+                href="https://aistudio.google.com/app/apikey"
+                rel="noreferrer"
+                target="_blank"
               >
-                {providerValidationMessage}
-              </span>
-            ) : null}
-          </label>
+                Get a Gemini API key
+              </a>
 
-          <a
-            className="min-w-0 truncate text-xs font-medium text-sky-300 underline-offset-2 hover:text-sky-200 hover:underline"
-            href="https://aistudio.google.com/app/apikey"
-            rel="noreferrer"
-            target="_blank"
-          >
-            Get a Gemini API key
-          </a>
-
-          <div className="mt-1 grid min-w-0 grid-cols-2 gap-2">
+              <div className="mt-1 grid min-w-0 grid-cols-2 gap-2">
+                <button
+                  className="min-w-0 rounded-md bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isLoading || isSaving || isTestingConnection}
+                  onClick={() => void saveProviderConfig()}
+                  type="button"
+                >
+                  Save Gemini
+                </button>
+                <button
+                  className="min-w-0 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-zinc-950 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isLoading || isSaving || isTestingConnection}
+                  onClick={() => void testGeminiConnection()}
+                  type="button"
+                >
+                  {isTestingConnection ? 'Testing...' : 'Test'}
+                </button>
+                <button
+                  className="col-span-2 min-w-0 rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={
+                    isLoading ||
+                    isSaving ||
+                    isTestingConnection ||
+                    settings.providerStatus !== 'configured'
+                  }
+                  onClick={() => void clearProviderConfig()}
+                  type="button"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="mt-3 rounded-md border border-amber-700 bg-amber-950 p-3 text-xs text-amber-100">
+            <p>
+              When Inline Grammar is enabled, text you type in supported writing fields may be sent
+              directly to the AI provider you configure after a short delay to generate grammar and
+              tone suggestions. Your provider credentials will be stored locally in this browser
+              profile and will not be synced by Inline Grammar. Do not use the extension for secrets
+              or sensitive information.
+            </p>
             <button
-              className="min-w-0 rounded-md bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isLoading || isSaving || isTestingConnection}
-              onClick={() => void saveProviderConfig()}
+              className="mt-3 w-full rounded-md bg-amber-200 px-3 py-2 text-xs font-semibold text-amber-950 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isLoading || isSaving}
+              onClick={() => void acceptProviderDataUse()}
               type="button"
             >
-              Save Gemini
-            </button>
-            <button
-              className="min-w-0 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-zinc-950 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={isLoading || isSaving || isTestingConnection}
-              onClick={() => void testGeminiConnection()}
-              type="button"
-            >
-              {isTestingConnection ? 'Testing...' : 'Test'}
-            </button>
-            <button
-              className="col-span-2 min-w-0 rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-200 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={
-                isLoading ||
-                isSaving ||
-                isTestingConnection ||
-                settings?.providerStatus !== 'configured'
-              }
-              onClick={() => void clearProviderConfig()}
-              type="button"
-            >
-              Clear
+              I agree and continue
             </button>
           </div>
-        </div>
+        )}
       </section>
 
       <div className="mt-3 min-h-5 min-w-0 text-xs" role="status">
-        {isSaving ? <p className="text-zinc-500">Saving...</p> : null}
+        {isSaving ? <p className="text-zinc-400">Saving...</p> : null}
         {errorMessage ? <p className="break-words text-pink-300">{errorMessage}</p> : null}
       </div>
     </main>

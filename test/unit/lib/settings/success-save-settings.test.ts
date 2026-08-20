@@ -26,6 +26,7 @@ describe('Given valid settings, when saveSettings runs, then it stores normalize
         model: 'gpt-4.1-mini',
         type: 'openai_compatible',
       },
+      providerDataConsent: true,
       providerStatus: 'configured',
     });
 
@@ -45,6 +46,7 @@ describe('Given valid settings, when saveSettings runs, then it stores normalize
         model: 'gpt-4.1-mini',
         type: 'openai_compatible',
       },
+      providerDataConsent: true,
       providerStatus: 'configured',
     });
   });

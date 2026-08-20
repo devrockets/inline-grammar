@@ -24,6 +24,7 @@ describe('Given valid Gemini provider settings, when loadSettings runs, then it 
         model: ' gemini-3.6-flash ',
         type: 'openai_compatible',
       },
+      providerDataConsent: true,
       providerStatus: 'not_configured',
     });
 
@@ -48,5 +49,9 @@ describe('Given valid Gemini provider settings, when loadSettings runs, then it 
 
   it('successfully trims the provider API key', () => {
     expect(sut.result.provider?.apiKey).toBe('test-key');
+  });
+
+  it('successfully preserves affirmative provider data-use consent', () => {
+    expect(sut.result.providerDataConsent).toBe(true);
   });
 });

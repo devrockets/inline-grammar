@@ -37,7 +37,7 @@ test.describe('Given the popup provider form, when a Gemini auth-key formatted c
         storage: {
           local: {
             get: async (key: string) => ({
-              [key]: undefined,
+              [key]: { providerDataConsent: true },
             }),
             set: async () => undefined,
           },

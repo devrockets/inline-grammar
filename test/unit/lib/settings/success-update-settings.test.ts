@@ -25,6 +25,7 @@ describe('Given existing settings, when updateSettings runs, then it merges allo
         model: 'gpt-4.1-mini',
         type: 'openai_compatible',
       },
+      providerDataConsent: true,
       providerStatus: 'configured',
     });
 
@@ -51,6 +52,7 @@ describe('Given existing settings, when updateSettings runs, then it merges allo
         model: 'gpt-4.1-mini',
         type: 'openai_compatible',
       },
+      providerDataConsent: true,
       providerStatus: 'configured',
     });
   });
@@ -66,6 +68,7 @@ describe('Given existing settings, when updateSettings runs, then it merges allo
         model: 'gpt-4.1-mini',
         type: 'openai_compatible',
       },
+      providerDataConsent: true,
       providerStatus: 'configured',
     });
   });

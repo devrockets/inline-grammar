@@ -25,6 +25,7 @@ describe('Given configured provider settings, when updateSettings clears the pro
         model: 'gpt-4.1-mini',
         type: 'openai_compatible',
       },
+      providerDataConsent: true,
       providerStatus: 'configured',
     });
 
@@ -47,5 +48,9 @@ describe('Given configured provider settings, when updateSettings clears the pro
 
   it('successfully stores no provider config', () => {
     expect(sut.storedSettings).toMatchObject({ provider: null });
+  });
+
+  it('successfully remembers previously accepted data use', () => {
+    expect(sut.result.providerDataConsent).toBe(true);
   });
 });

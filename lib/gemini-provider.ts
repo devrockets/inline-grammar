@@ -47,7 +47,7 @@ export async function checkTextWithGeminiProvider({
 }: GeminiCheckTextRequest): Promise<TextCheckResult> {
   const abortController = new AbortController();
   const abortSupersededRequest = () => abortController.abort();
-  const timeoutId = window.setTimeout(() => abortController.abort(), geminiTextCheckTimeoutMs);
+  const timeoutId = globalThis.setTimeout(() => abortController.abort(), geminiTextCheckTimeoutMs);
   const requestNumber = geminiRequestCount + 1;
   const startedAt = performance.now();
   geminiRequestCount = requestNumber;
@@ -146,7 +146,7 @@ export async function checkTextWithGeminiProvider({
     });
     return createFailedTextCheck('Gemini check could not be completed.');
   } finally {
-    window.clearTimeout(timeoutId);
+    globalThis.clearTimeout(timeoutId);
     requestSignal?.removeEventListener('abort', abortSupersededRequest);
   }
 }

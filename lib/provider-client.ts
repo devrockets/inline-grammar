@@ -16,7 +16,10 @@ export async function testProviderConnection(
   fetchClient: typeof fetch = fetch,
 ): Promise<ProviderConnectionResult> {
   const abortController = new AbortController();
-  const timeoutId = window.setTimeout(() => abortController.abort(), providerConnectionTimeoutMs);
+  const timeoutId = globalThis.setTimeout(
+    () => abortController.abort(),
+    providerConnectionTimeoutMs,
+  );
 
   try {
     const response = await fetchClient(getModelUrl(provider), {
@@ -68,7 +71,7 @@ export async function testProviderConnection(
       status: 'network_error',
     };
   } finally {
-    window.clearTimeout(timeoutId);
+    globalThis.clearTimeout(timeoutId);
   }
 }
 

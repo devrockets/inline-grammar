@@ -25,6 +25,7 @@ export type ExtensionSettings = {
   language: 'en';
   presetId: PresetId;
   provider: ProviderConfig | null;
+  providerDataConsent: boolean;
   providerStatus: ProviderStatus;
 };
 
@@ -33,6 +34,7 @@ export const defaultSettings = {
   language: 'en',
   presetId: defaultPresetId,
   provider: null,
+  providerDataConsent: false,
   providerStatus: 'not_configured',
 } as const satisfies ExtensionSettings;
 
@@ -50,7 +52,9 @@ export async function saveSettings(settings: ExtensionSettings): Promise<void> {
 }
 
 export async function updateSettings(
-  changes: Partial<Pick<ExtensionSettings, 'enabled' | 'presetId' | 'provider'>>,
+  changes: Partial<
+    Pick<ExtensionSettings, 'enabled' | 'presetId' | 'provider' | 'providerDataConsent'>
+  >,
 ): Promise<ExtensionSettings> {
   const currentSettings = await loadSettings();
   const nextSettings = normalizeSettings({
@@ -83,13 +87,15 @@ function normalizeSettings(value: unknown): ExtensionSettings {
   if (!isRecord(value)) return { ...defaultSettings };
 
   const stored = value as StoredSettings;
+  const provider = normalizeProviderConfig(stored.provider);
 
   return {
     enabled: typeof stored.enabled === 'boolean' ? stored.enabled : defaultSettings.enabled,
     language: 'en',
     presetId: isPresetId(stored.presetId) ? stored.presetId : defaultSettings.presetId,
-    provider: normalizeProviderConfig(stored.provider),
-    providerStatus: getProviderStatus(normalizeProviderConfig(stored.provider)),
+    provider,
+    providerDataConsent: stored.providerDataConsent === true,
+    providerStatus: getProviderStatus(provider),
   };
 }
 

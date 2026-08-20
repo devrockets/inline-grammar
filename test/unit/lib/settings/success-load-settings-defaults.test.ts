@@ -40,4 +40,8 @@ describe('Given empty local storage, when loadSettings runs, then it returns def
   it('uses no provider config by default', () => {
     expect(sut.result.provider).toBeNull();
   });
+
+  it('does not assume provider data-use consent by default', () => {
+    expect(sut.result.providerDataConsent).toBe(false);
+  });
 });

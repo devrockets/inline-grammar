@@ -1,3 +1,5 @@
+import { checkTextInBackground, getContentSettingsFromBackground } from '@/lib/background-client';
+import { isContentSettingsChangedMessage } from '@/lib/background-messages';
 import { attachCheckingController, detachCheckingController } from '@/lib/checking-controller';
 import { classifyField, shouldShowFieldIndicator } from '@/lib/field-eligibility';
 import {
@@ -7,19 +9,14 @@ import {
 } from '@/lib/field-indicator';
 import { writingFieldSelector } from '@/lib/field-selectors';
 import type { PresetId } from '@/lib/presets';
-import { loadSettings } from '@/lib/settings';
-import { createTextChecker } from '@/lib/text-checker';
 
 export default defineContentScript({
   matches: ['<all_urls>'],
   async main() {
-    let settings = await loadSettings();
+    let settings = await getContentSettingsFromBackground();
     let settingsRevision = 0;
     const checkText: Parameters<typeof attachCheckingController>[1]['checkText'] = (request) =>
-      createTextChecker(settings.provider)({
-        ...request,
-        presetId: settings.presetId,
-      });
+      checkTextInBackground({ ...request, presetId: settings.presetId });
 
     function synchronizePage(): void {
       if (settings.enabled) {
@@ -31,10 +28,10 @@ export default defineContentScript({
 
     synchronizePage();
 
-    browser.storage.onChanged.addListener((_changes, areaName) => {
-      if (areaName !== 'local') return;
+    browser.runtime.onMessage.addListener((message) => {
+      if (!isContentSettingsChangedMessage(message)) return;
 
-      void loadSettings().then((nextSettings) => {
+      void getContentSettingsFromBackground().then((nextSettings) => {
         settings = nextSettings;
         settingsRevision += 1;
         synchronizePage();
