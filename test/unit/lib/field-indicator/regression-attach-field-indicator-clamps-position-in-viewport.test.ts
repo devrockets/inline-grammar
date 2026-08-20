@@ -46,10 +46,10 @@ describe('Given a rich editor sits near the viewport edge, when attachFieldIndic
   });
 
   it('clamps the indicator left position inside the viewport', () => {
-    expect(sut.indicatorLeft).toBe('294px');
+    expect(sut.indicatorLeft).toBe('288px');
   });
 
   it('clamps the indicator top position inside the viewport', () => {
-    expect(sut.indicatorTop).toBe('134px');
+    expect(sut.indicatorTop).toBe('128px');
   });
 });

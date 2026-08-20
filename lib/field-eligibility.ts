@@ -117,16 +117,25 @@ function hasSensitiveAutocomplete(element: Element): boolean {
 }
 
 function hasSensitiveName(element: Element): boolean {
+  const labels =
+    element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement
+      ? Array.from(element.labels ?? [], (label) => label.textContent)
+      : [element.closest('label')?.textContent];
   const value = [
     element.getAttribute('name'),
     element.getAttribute('id'),
     element.getAttribute('aria-label'),
+    element.getAttribute('placeholder'),
+    ...labels,
   ]
     .filter(Boolean)
     .join(' ')
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ');
 
-  return /\b(card|cc|credit|cvv|cvc|otp|password|secret|security-code)\b/.test(value);
+  return /\b(card|cc|credit|cvv|cvc|otp|password|passcode|pin|secret|security code|one time code|verification code|authentication code|api key|access token|private key)\b/.test(
+    value,
+  );
 }
 
 function isContentEditable(element: HTMLElement): boolean {

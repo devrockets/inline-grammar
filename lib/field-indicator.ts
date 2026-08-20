@@ -40,9 +40,11 @@ export function attachFieldIndicator(element: HTMLElement, eligibility: FieldEli
       ? 'Inline Grammar is available for this field'
       : 'Inline Grammar cannot edit this field',
   );
+  indicator.setAttribute('aria-expanded', 'false');
+  indicator.setAttribute('aria-haspopup', 'dialog');
   indicator.style.alignItems = 'center';
   indicator.style.appearance = 'none';
-  indicator.style.background = eligibility.status === 'eligible' ? '#0ea5e9' : '#a1a1aa';
+  indicator.style.background = eligibility.status === 'eligible' ? '#0369a1' : '#52525b';
   indicator.style.border = '2px solid #ffffff';
   indicator.style.borderRadius = '999px';
   indicator.style.boxShadow = '0 2px 8px rgb(24 24 27 / 18%)';
@@ -50,25 +52,17 @@ export function attachFieldIndicator(element: HTMLElement, eligibility: FieldEli
   indicator.style.color = '#ffffff';
   indicator.style.display = 'flex';
   indicator.style.font = '700 11px/1 system-ui, sans-serif';
-  indicator.style.height = '18px';
+  indicator.style.height = '24px';
   indicator.style.justifyContent = 'center';
   indicator.style.padding = '0';
   indicator.style.pointerEvents = 'auto';
   indicator.style.position = 'fixed';
-  indicator.style.width = '18px';
+  indicator.style.width = '24px';
   indicator.style.zIndex = '2147483647';
   indicator.textContent = 'i';
   indicator.tabIndex = 0;
 
   indicator.addEventListener('click', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    showIndicatorPopover(element, indicator);
-  });
-
-  indicator.addEventListener('keydown', (event) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-
     event.preventDefault();
     event.stopPropagation();
     showIndicatorPopover(element, indicator);
@@ -168,12 +162,12 @@ export function setFieldIndicatorState(
           : 'i';
   indicator.style.background =
     state === 'checking'
-      ? '#8b5cf6'
+      ? '#6d28d9'
       : state === 'provider-error'
-        ? '#f97316'
+        ? '#c2410c'
         : indicator.getAttribute(indicatorAttribute) === 'ineligible'
-          ? '#a1a1aa'
-          : '#0ea5e9';
+          ? '#52525b'
+          : '#0369a1';
 }
 
 function startCheckingAnimation(indicator: HTMLElement): void {
@@ -220,7 +214,7 @@ function updateAllIndicatorPositions(): void {
 
 function positionIndicator(element: HTMLElement, indicator: HTMLElement): void {
   const rect = element.getBoundingClientRect();
-  const indicatorSize = 18;
+  const indicatorSize = 24;
   const viewportPadding = 8;
   const maxLeft = window.innerWidth - indicatorSize - viewportPadding;
   const maxTop = window.innerHeight - indicatorSize - viewportPadding;

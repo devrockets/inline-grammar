@@ -3,6 +3,8 @@ import type { TextSuggestion } from './mock-provider';
 const popoverAttribute = 'data-inline-grammar-popover';
 let activePopover: HTMLElement | null = null;
 let activeSuggestionCleanup: (() => void) | null = null;
+let activeAnchor: HTMLElement | null = null;
+let nextPopoverId = 1;
 
 export type SuggestionPopoverOptions = {
   anchor: HTMLElement;
@@ -32,6 +34,8 @@ export function showSuggestionPopover({
   closeSuggestionPopover();
 
   const popover = document.createElement('section');
+  popover.id = `inline-grammar-suggestions-${nextPopoverId}`;
+  nextPopoverId += 1;
   popover.setAttribute(popoverAttribute, 'true');
   popover.setAttribute('aria-label', 'Inline Grammar suggestions');
   popover.setAttribute('role', 'dialog');
@@ -72,7 +76,10 @@ export function showSuggestionPopover({
 
   getPopoverMountRoot(anchor).append(popover);
   activePopover = popover;
+  activeAnchor = anchor;
   activeSuggestionCleanup = onSuggestionBlur;
+  anchor.setAttribute('aria-controls', popover.id);
+  anchor.setAttribute('aria-expanded', 'true');
   const isTopLayerPopover = showPopoverInTopLayer(popover);
   popover.style.position = isTopLayerPopover ? 'fixed' : 'absolute';
   positionPopover(anchor, popover, isTopLayerPopover);
@@ -80,7 +87,7 @@ export function showSuggestionPopover({
   window.addEventListener('keydown', closeOnEscape);
   window.addEventListener('pointerdown', closeOnOutsidePointerDown, true);
   window.addEventListener('scroll', closeOnExternalScroll, true);
-  window.addEventListener('resize', closeSuggestionPopover);
+  window.addEventListener('resize', closeOnResize);
 }
 
 function getPopoverMountRoot(anchor: HTMLElement): HTMLElement {
@@ -101,17 +108,25 @@ function showPopoverInTopLayer(popover: HTMLElement): boolean {
   return true;
 }
 
-export function closeSuggestionPopover(): void {
+export function closeSuggestionPopover(restoreFocus = false): void {
   if (!activePopover) return;
 
+  const anchor = activeAnchor;
   activePopover.remove();
   activePopover = null;
+  activeAnchor = null;
+  anchor?.setAttribute('aria-expanded', 'false');
+  anchor?.removeAttribute('aria-controls');
   activeSuggestionCleanup?.();
   activeSuggestionCleanup = null;
   window.removeEventListener('keydown', closeOnEscape);
   window.removeEventListener('pointerdown', closeOnOutsidePointerDown, true);
   window.removeEventListener('scroll', closeOnExternalScroll, true);
-  window.removeEventListener('resize', closeSuggestionPopover);
+  window.removeEventListener('resize', closeOnResize);
+
+  if (restoreFocus && anchor?.isConnected) {
+    anchor.focus({ preventScroll: true });
+  }
 }
 
 function createEmptyState({
@@ -168,10 +183,7 @@ function createSuggestionList({
     item.dataset.inlineGrammarSuggestionIndex = String(index + 1);
     item.style.border = '1px solid #3f3f46';
     item.style.borderRadius = '6px';
-    item.style.outline = 'none';
     item.style.padding = '8px';
-    item.tabIndex = 0;
-
     const heading = document.createElement('div');
     heading.style.alignItems = 'start';
     heading.style.display = 'flex';
@@ -303,7 +315,7 @@ function createButton(label: string): HTMLButtonElement {
   const button = document.createElement('button');
   button.textContent = label;
   button.type = 'button';
-  button.style.background = '#0ea5e9';
+  button.style.background = '#0369a1';
   button.style.border = '0';
   button.style.borderRadius = '6px';
   button.style.color = '#ffffff';
@@ -354,7 +366,7 @@ function positionPopover(
 
 function closeOnEscape(event: KeyboardEvent): void {
   if (event.key === 'Escape') {
-    closeSuggestionPopover();
+    closeSuggestionPopover(true);
   }
 }
 
@@ -375,5 +387,9 @@ function closeOnExternalScroll(event: Event): void {
 
   if (target instanceof Node && activePopover.contains(target)) return;
 
+  closeSuggestionPopover();
+}
+
+function closeOnResize(): void {
   closeSuggestionPopover();
 }
