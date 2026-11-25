@@ -2,6 +2,20 @@
 
 These rules apply to unit, integration, and end-to-end tests in this repository.
 
+## Test Suite Header
+
+Every automated test file must begin, before imports, with a suite comment that states:
+
+- `Test type`: the execution boundary, such as unit, integration, or end-to-end;
+- `Intent`: exactly `Feature` or `Regression`;
+- `Subject`: the behavior or contract being exercised; and
+- `Assertions`: a compact summary of the observable outcomes the test proves.
+
+Use `Feature` for intended behavior and `Regression` when the test protects a previously observed
+failure. A regression header must name that failure. Since each suite covers one scenario, do not
+combine feature and regression intent in one file. Update the header whenever the suite's scope or
+assertions change.
+
 ## Structure
 
 - Test file placement must mirror the source folder structure.
@@ -49,6 +63,12 @@ These rules apply to unit, integration, and end-to-end tests in this repository.
 ## Examples
 
 ```ts
+/**
+ * Test type: Unit
+ * Intent: Feature
+ * Subject: Applying a suggestion to valid input
+ * Assertions: The operation returns the expected replacement value
+ */
 import { beforeAll, describe, expect, it } from 'vitest';
 import { doSomething } from '../../../../lib/example';
 
