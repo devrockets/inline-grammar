@@ -16,6 +16,10 @@ failure. A regression header must name that failure. Since each suite covers one
 combine feature and regression intent in one file. Update the header whenever the suite's scope or
 assertions change.
 
+For a regression, add a `Regression context` line that states the triggering condition, the
+incorrect observable outcome before the fix, and what recurrence the scenario guards against. An
+issue or pull-request reference may supplement this explanation but must not replace it.
+
 ## Structure
 
 - Test file placement must mirror the source folder structure.
